@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/zakiguedi/tinyapp/issues"
   },
-  "homepage": "https://github.com/zakiguedi/tinyapp#readme"
+  "homepage": "https://github.com/zakiguedi/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
