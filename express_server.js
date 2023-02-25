@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
 const cookieParser = require('cookie-parser')
@@ -50,7 +51,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.send("Page does not exist!");
 });
 
 app.get("/hello", (req, res) => {
@@ -66,6 +67,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.redirect('/urls');
+  }
   const user = users[req.cookies["user_id"]];
   const templateVars = { user: user };
   res.render("urls_new", templateVars);
@@ -83,13 +87,21 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.status(403).send("You don't have permission to add a new URL");
+  }
   console.log(req.body); 
   res.send("Ok"); 
 });
 
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id]
-  res.redirect(longURL);
+  if (!longURL) {
+    const templateVars = { message: "This short URL does not exist." };
+    res.status(404).render("error", templateVars);
+  } else {
+    res.redirect(longURL);
+  }
 });
 
 app.post("/urls/:id",(req, res) => {
@@ -111,7 +123,7 @@ app.post('/login', (req, res) => {
     return res.status(403).send("Email not found");
   }
 
-  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, user.password)) {
     return res.status(403).send("Incorrect password");
   }
 
@@ -126,6 +138,9 @@ app.post('/logout', (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  if (req.cookies.user_id) {
+    return res.redirect('/urls');
+  }
   const templateVars = { user:null };
   res.render("register", templateVars);
 });
@@ -146,13 +161,16 @@ app.post('/register', (req, res) => {
   users[userId] = {
     id: userId,
     email: email,
-    password: password
+    password: bcrypt.hashSync(password, 10)
   };
   res.cookie("user_id", userId);
   res.redirect('/urls');
 });
 
-app.get('/login', (req, res) => {
+app.get('/login', (req, res) => { 
+  if (req.cookies.user_id) {
+    return res.redirect('/urls');
+  }
   const templateVars = { user:null };
   res.render("login", templateVars);
 });
