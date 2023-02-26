@@ -124,6 +124,8 @@ app.get('/login', (req, res) => {
   res.render("login", templateVars);
 });
 
+// logging in - POST
+// redirects to urls index page if credentials are valid
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -146,7 +148,8 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
-
+// logging out - POST
+// clears cookies and redirects to urls index page
 app.post('/logout', (req, res) => {
   req.session = null
   res.redirect('/login');
@@ -160,6 +163,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+// defines an endpoint for handling user registration requests
 app.post('/register', (req, res) => {
   const {email, password} = req.body;
   if (!email || !password) {
